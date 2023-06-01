@@ -3,11 +3,11 @@ import getopt
 import shutil
 import numpy
 
-long_opts = []
+long_opts = ['version']
 options = {}
 option_types = {}
 option_params = {}
-option_desc = {}
+option_desc = {'version':'show version from git info'}
 
 def add_option(name, datatype=None, default=None, params=None, desc=None) :
     option = name
@@ -57,7 +57,8 @@ def exit_help(msg = None) :
             name = option[:-1]
         else :
             name = option
-        if len(option_params[name]) > paramlen : paramlen = len(option_params[name])
+        params = option_params.get(name)
+        if None != params and len(params) > paramlen : paramlen = len(params)
         if len(option) > optlen : optlen = len(option)
     fmt = '    %%%ds%%-%ds %%s'%(optlen+2,paramlen)
     for option in long_opts :
@@ -65,18 +66,24 @@ def exit_help(msg = None) :
             name = option[:-1]
         else :
             name = option
+            option += ' '
         desc = option_desc.get(name)
         if None == desc : desc = ''
         desc = format(desc,width-len(fmt%('','','')))
-        print(fmt%('--'+option,option_params[name],desc[0]))
+        params = option_params.get(name)
+        if None == params : params = ''
+        print(fmt%('--'+option,params,desc[0]))
         for d in desc[1:] :
             print(fmt%('','',d))
     quit()
     
-opts,params = getopt.getopt(sys.argv[1:],'h',long_opts)
+opts,params = getopt.getopt(sys.argv[1:],'hv',long_opts)
 for opt,param in opts :
     if '-h' == opt :
         exit_help()
+    elif '-v' == opt or '--version' == opt :
+        print(s2b_get_version())
+        quit()
     else :
         for option in long_opts :
             if '=' == option[-1] :
@@ -93,7 +100,6 @@ for opt,param in opts :
                         options[name] = option
                     else :
                         options[name] = datatype(param)
-
 if len(params) != 1 :
     exit_help('expecting single parameter, <base-filename>')
 
